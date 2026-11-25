@@ -1,0 +1,536 @@
+/* ---- from prototype head (cursor, ticks, detail tweaks) ---- */
+:root{--hand:url(/media/cursor_hand_w.png) 15 3,pointer}
+@supports (cursor:image-set(url(x.png) 1x) 0 0,auto){:root{--hand:image-set(url(/media/cursor_hand_w.png) 1x,url(/media/cursor_hand_w@2x.png) 2x) 15 3,pointer}}
+/* 20 Nov, Sophia: ordinary pointer on links and buttons; Ota's handprint only over the paintings (rule further down) */
+a[href],button,[role="button"],[role="menuitem"],label,summary,select,input[type="submit"],input[type="checkbox"],input[type="radio"],[onclick],[data-open],[data-go]{cursor:pointer}
+button:disabled,[aria-disabled="true"]{cursor:default}
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+/* 20 Nov, Sophia: position shown as ticks (one fine stroke per work; seen ones lighter, current tall and gold), Works page and landing */
+.ticks{display:flex;align-items:flex-end;gap:0;height:24px}
+.ticks button,.dots button{position:relative;width:11px;height:24px;padding:0;background:none;border-radius:0;transform:none}
+.ticks button::before,.dots button::before{content:"";position:absolute;left:5px;bottom:3px;width:1px;height:8px;background:var(--tk,#4a4a4a);transition:height .25s ease,background .25s ease}
+.ticks button.past::before,.dots button.past::before{background:var(--tkp,#8e8e8e)}
+.ticks button.on::before,.dots button.on::before{height:18px;background:var(--gold)}
+.ticks button:hover::before,.dots button:hover::before{background:var(--tkh,#bdbdbd)}
+.ticks button.on:hover::before,.dots button.on:hover::before{background:var(--gold)}
+.ticks{--tk:#d4d4d4;--tkp:#8a8a8a;--tkh:#555}
+:root[data-theme="dark"] .ticks{--tk:#4a4a4a;--tkp:#8e8e8e;--tkh:#bdbdbd}
+.dots{--tk:rgba(255,255,255,.35);--tkp:rgba(255,255,255,.75);--tkh:#fff;align-items:flex-end;gap:0!important}
+.dots button,.dots button.on{width:11px!important;height:24px!important;background:none!important;transform:none!important;border-radius:0!important}
+
+/* 20 Nov, Sophia: detail-view page marker uses the same ticks as Works and landing */
+.ddots{align-items:flex-end;gap:0!important;--tk:#c8c8c8;--tkp:#8a8a8a;--tkh:#555}
+:root[data-theme="dark"] .ddots{--tk:#4a4a4a;--tkp:#8e8e8e;--tkh:#bdbdbd}
+.ddots.onphoto{--tk:rgba(255,255,255,.4);--tkp:rgba(255,255,255,.8);--tkh:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.55))}
+.ddots button,.ddots button.on{position:relative;width:11px!important;height:24px!important;padding:0;background:none!important;border-radius:0!important;transform:none!important}
+.ddots button::before{content:"";position:absolute;left:5px;bottom:3px;width:1px;height:8px;background:var(--tk);transition:height .25s ease,background .25s ease}
+.ddots button.past::before{background:var(--tkp)}
+.ddots button.on::before{height:18px;background:var(--gold)}
+.ddots button:hover::before{background:var(--tkh)}.ddots button.on:hover::before{background:var(--gold)}
+
+/* 20 Nov, Sophia: photo page opened from Works shows the whole photo, nothing cut, plain empty space around it */
+/* 20 Nov, Sophia: free space around the whole photo shows the soft blur of the same photo */
+#dpSet.whole img.ph{position:absolute;inset:0;width:100%;height:100%;object-fit:contain!important;object-position:50% 50%!important}
+#dpSet.whole{background:#0e0e0e}
+.ddesc p{margin:0 0 .9em}.ddesc p:last-child{margin-bottom:0}
+
+
+#detail{touch-action:pan-y pinch-zoom}#zbox{touch-action:none}
+/* 22 Nov: Czech quote is shorter, so justified lines would gape; right-aligned like the phone layout */
+html[lang=cs] .aright .aquote{text-align:right;text-align-last:right}
+.dinfo figure img.dgo{cursor:var(--hand)}
+/* ---- prototype main stylesheet ---- */
+:root{--ground:#fff;--text:#111;--meta:#6b6b6b;--rule:#e2e2e2;--gold:#C9A96E;--field:#fff;
+  --k:1;--ox:0px;--oy:0px;--ease:cubic-bezier(.22,.61,.36,1)}
+:root[data-theme="dark"]{--ground:#161616;--text:#ededed;--meta:#b3b3b3;--rule:#2e2e2e;--field:#1e1e1e}   /* 20 Nov, Sophia: dark mode = B charcoal */
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ground);color:var(--text)}
+body{font-family:'Jost',system-ui,sans-serif;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{display:block}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.view{display:block}
+
+/* ---------- design canvas: Nini's 1440 x 1024 frame, scaled to the screen ---------- */
+.stage{position:relative;width:100vw;height:100vh;height:100svh;overflow:hidden}
+.cv{position:absolute;left:var(--ox);top:var(--oy);width:1440px;height:1024px;transform:scale(var(--k));transform-origin:0 0}
+.cv .ab{position:absolute}
+
+/* ---------- top bar ---------- */
+.bar{position:fixed;z-index:60;top:0;left:0;right:0;height:0;pointer-events:none}
+.bar>*{pointer-events:auto;position:absolute}
+.bmenu{left:calc(var(--ox) + 72px*var(--k));top:calc(var(--oy) + 64px*var(--k));width:calc(34px*var(--k));height:calc(34px*var(--k));
+  display:flex;flex-direction:column;justify-content:center;gap:calc(7px*var(--k))}
+.bmenu i{display:block;height:1px;background:currentColor;width:100%}
+.bword{left:50%;transform:translateX(-50%);top:calc(var(--oy) + 50px*var(--k));font-family:'Cormorant Garamond',serif;font-weight:300;
+  font-size:calc(48px*var(--k));line-height:1.2;letter-spacing:.01em}
+.bctl{right:calc(100vw - var(--ox) - 1368px*var(--k));top:calc(var(--oy) + 72px*var(--k));display:flex;align-items:center;gap:calc(22px*var(--k))}
+.blang{font-size:calc(14px*var(--k));letter-spacing:.04em;padding-bottom:3px;border-bottom:1px solid currentColor}
+.bsnd svg{width:calc(18px*var(--k));height:calc(18px*var(--k));display:block}
+.bsnd .wave{display:none}.bsnd[aria-pressed="true"] .wave{display:inline}.bsnd[aria-pressed="true"] .slash{display:none}
+.bar.light{color:#fff}.bar.dark{color:var(--text)}
+.bar.hide{display:none}
+.langs{position:fixed;z-index:85;display:none;flex-direction:column;align-items:flex-start;gap:0;color:#fff;
+  font-size:calc(13px*var(--k));line-height:calc(24px*var(--k));letter-spacing:.14em;text-shadow:0 1px 8px rgba(0,0,0,.35);
+  font-size:calc(14px*var(--k));letter-spacing:.06em}
+.langs.on{display:flex}
+@media not all and (max-width:760px){@media not all and (orientation:portrait) and (max-width:1100px){
+  /* 18 Nov, Nini: desktop uses the phone design, a dark strip with all languages in one row */
+  .langs{flex-direction:column;align-items:stretch;gap:0;height:auto;padding:max(6px,calc(8*var(--u))) 0;font-size:max(15px,calc(15*var(--u)))!important;line-height:1!important;
+    color:#fff!important;text-shadow:none;background:rgba(20,28,34,.5);border:1px solid rgba(255,255,255,.12);   /* 20 Nov, Sophia: more transparent (was .72) */
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+  .langs .cur{display:block!important}.langs span{display:none!important}
+  .langs button{display:block;text-align:center;padding:max(8px,calc(10*var(--u))) max(10px,calc(12*var(--u)))}   /* 20 Nov, Sophia: half as wide (side padding 24 to 12) */
+  .langs button:not(.cur):hover{background:rgba(255,255,255,.08)}
+}}
+.lfoot2{display:flex;justify-content:space-between;gap:16px;margin-top:40px;font-size:13px}.lfoot2 a{color:var(--gold);text-decoration:none}
+.langs.ink{color:var(--text);text-shadow:none}
+.langs button{letter-spacing:inherit;line-height:inherit}
+.langs button.cur{color:var(--gold)}
+.langs button[aria-disabled="true"]{cursor:default}
+.langs .cur,.langs span{display:none}             /* desktop: EN stays in the bar, the others drop below it */
+.blang.open{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* ---------- landing ---------- */
+#v-main .stage{background:#0e0e0e}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s var(--ease)}
+.slide.on{opacity:1}
+.slide{pointer-events:none}.slide.on{pointer-events:auto}
+.slide img{width:100%;height:100%;object-fit:contain}
+#land .slide img{object-fit:cover}   /* landing fills the screen: horizontal photos on desktop, vertical on phones */
+.slide .hit{position:absolute;cursor:var(--hand)}
+.slide img.fillbg{position:absolute;inset:-6%;width:112%;height:112%;max-width:none;object-fit:cover;filter:blur(28px) brightness(.62) saturate(.9)}
+.lfoot{position:absolute;left:0;right:0;bottom:calc(100svh - var(--oy) - 1004px*var(--k));text-align:center;color:#fff;z-index:5}
+.dots{display:flex;justify-content:center;gap:calc(8px*var(--k));margin-bottom:calc(16px*var(--k))}
+.dots button{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55)}
+.dots button.on{background:var(--gold);transform:scale(1.25)}
+.tag{font-size:calc(22px*var(--k));letter-spacing:.01em;text-shadow:0 1px 14px rgba(0,0,0,.45)}
+
+/* ---------- menu ---------- */
+#menu{position:fixed;inset:0;z-index:80;display:none;color:#fff}
+#menu.on{display:block}
+#menu{background:#0e0e0e}
+#menu .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+#menu .veil{position:absolute;inset:0;background:rgba(12,14,20,.62)}
+#menu .mx{left:72px;top:64px;width:34px;height:34px}
+#menu .mx svg{width:100%;height:100%}
+#menu .mword{left:126px;top:50px;font-family:'Cormorant Garamond',serif;font-weight:300;font-size:48px;line-height:1.2}
+#menu .mctl{left:1234px;top:70px;display:flex;gap:24px;align-items:center}
+#menu nav{left:446px;top:205px;width:548px}
+#menu nav a{display:block;font-family:'Cormorant Garamond',serif;font-weight:300;font-size:60px;line-height:72px;text-decoration:none;
+  padding:20px 0 19px;border-bottom:1px solid rgba(255,255,255,.22)}
+#menu nav a:first-child{padding-top:20px}
+#menu nav a.cur{color:var(--gold)}
+#menu .credit{left:72px;top:940px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;opacity:.7}
+#menu .theme{left:1265px;top:936px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;display:flex;gap:12px}
+#menu .theme button{opacity:1;color:#fff}#menu .theme button.cur{color:var(--gold);opacity:1}
+#menu .theme{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.55)}   /* 18 Nov: always light over the menu photo, larger */
+
+/* ---------- gallery (desktop canvas pages) ---------- */
+#v-gallery .stage{background:var(--ground);scroll-snap-align:start}
+#v-gallery{height:100svh;overflow-y:auto;scroll-snap-type:y mandatory}
+.gimg{cursor:var(--hand);object-fit:fill}
+.gcap{font-size:16px;line-height:1.5;color:var(--text);margin-top:4px}
+.gdv{font-size:24px;letter-spacing:.02em;text-transform:uppercase}
+.gdv:hover,.ginq:hover{text-decoration:underline;text-underline-offset:5px;text-decoration-thickness:1px}
+.ginq{font-size:24px;letter-spacing:.02em;text-transform:uppercase;color:var(--gold)}
+.gnote{font-size:16px;line-height:1.5;width:1000px}
+
+/* ---------- detailed view ---------- */
+#detail{position:fixed;inset:0;z-index:90;display:none;background:var(--ground)}
+#detail.on{display:block}
+.dp{position:absolute;inset:0;display:none}
+.dp.on{display:block}
+.dclose{position:absolute;z-index:6;left:calc(var(--ox) + 72px*var(--k));top:calc(var(--oy) + 64px*var(--k));width:calc(34px*var(--k));height:calc(34px*var(--k))}
+.dclose svg{width:100%;height:100%}
+.ddots{position:absolute;z-index:6;left:0;right:0;bottom:calc(100svh - var(--oy) - 958px*var(--k));display:flex;justify-content:center;gap:calc(12px*var(--k))}
+.ddots button{width:6px;height:6px;border-radius:50%;background:#9a9a9a}
+.ddots button.on{background:var(--gold);transform:scale(1.3)}
+.dp-set{background:#0e0e0e}
+.dp-set img{width:100%;height:100%;object-fit:contain}
+.dp-set .hit{position:absolute;cursor:var(--hand)}
+.dp-full{background:var(--field);overflow:hidden;touch-action:none}
+.zbox{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.zimg{cursor:var(--hand);transition:opacity .25s ease;max-width:100%;max-height:100%;width:auto;height:auto;will-change:transform;transform-origin:0 0;user-select:none;-webkit-user-drag:none}
+.zctl{position:absolute;z-index:6;left:calc(var(--ox) + 1294px*var(--k));top:calc(var(--oy) + 390px*var(--k));width:calc(74px*var(--k));
+  display:flex;flex-direction:column;align-items:center;font-size:calc(12px*var(--k));letter-spacing:.22em;color:#555}
+.zctl .zl{margin-bottom:calc(16px*var(--k))}
+.zctl button{font-size:calc(28px*var(--k));line-height:calc(40px*var(--k));width:100%;color:#333}
+.zctl hr{width:calc(32px*var(--k));border:0;border-top:1px solid #bbb;margin:calc(16px*var(--k)) 0}
+.zctl .zp{font-size:calc(12px*var(--k));letter-spacing:.08em}
+.dlab{font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+.dttl{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:44px;line-height:50px;border-bottom:1px solid var(--rule)}
+.dmeta{font-size:18px;line-height:29px}
+.dmeta .m1{margin-top:28px}.dmeta .m2{color:inherit;margin-top:0}   /* 22 Nov, Sophia: framed size continues the size line, same colour, one block */
+.ddesc{font-size:18px;line-height:33px;color:var(--meta);margin-top:28px}
+.dinq{display:block;margin-top:32px;padding-bottom:14px;border-bottom:1px solid var(--gold);color:var(--gold);font-size:20px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
+
+/* ---------- author ---------- */
+#v-author .stage{background:#111;color:#fff}
+#v-author .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.aname{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:46px;line-height:54px}
+.abio{font-size:20px;line-height:30px;margin-top:32px}
+.gold{color:var(--gold)}
+.aquote{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:46px;line-height:56px;text-align:right}
+.aatt{font-size:20px;color:var(--gold);text-align:right}
+.arule{border-top:1px solid rgba(255,255,255,.18)}
+
+/* ---------- contact ---------- */
+#v-contact .stage{background:var(--ground)}
+.cright{position:absolute;top:0;bottom:0;right:0;overflow:hidden}
+.cright img{width:100%;height:100%;object-fit:cover;opacity:.55}
+.cright::after{content:"";position:absolute;inset:0;background:rgba(255,255,255,.55)}
+:root[data-theme="dark"] .cright::after{background:rgba(12,12,12,.62)}
+/* 18 Nov, Nini/Sophia: option B, warm paper with a hint of the photo, darker text (light mode) */
+:root:not([data-theme="dark"]) .cright{background:#F3EEE6}
+:root:not([data-theme="dark"]) .cright img{opacity:.10}
+:root:not([data-theme="dark"]) .cright::after{background:none}
+:root:not([data-theme="dark"]) .cpin .stxt,:root:not([data-theme="dark"]) .pv .stxt{color:#262626;font-weight:400}
+:root:not([data-theme="dark"]) .cpin .slab,:root:not([data-theme="dark"]) .pv .slab,:root:not([data-theme="dark"]) .cpin .lnk,:root:not([data-theme="dark"]) .pv .lnk{color:#9C7B45}
+.slab{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+.sttl{font-size:40px;line-height:43px;text-transform:uppercase;font-weight:300;margin:0}
+.stxt{font-size:18px;line-height:30px;color:var(--meta);margin:0}
+.efield{display:flex;gap:12px}
+.efield input{flex:1;height:48px;border:1px solid #cfcfcf;background:var(--field);color:var(--text);padding:0 16px;font:inherit;font-size:15px}
+.efield button{width:120px;height:48px;background:var(--gold);color:#fff;font-size:15px;letter-spacing:.2em;text-transform:uppercase}
+.lnk{color:var(--gold);font-size:14px;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;padding-bottom:12px;border-bottom:1px solid var(--gold)}
+.ctext{font-size:20px;line-height:30px}
+.cmail{font-size:22px;font-weight:400;text-decoration:none}
+
+/* ---------- inquire + legal (scrolling text pages) ---------- */
+.tpage{max-width:1216px;margin:0 auto;padding:190px 0 120px}
+.tpage .slab{display:block;margin-bottom:24px}
+.tpage h1{font-size:34px;font-weight:300;text-transform:uppercase;margin:0 0 24px;letter-spacing:.01em}
+.tpage .hr{border-top:1px solid var(--rule);margin-bottom:40px}
+.form{max-width:768px;margin:0 auto}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+.fld label,.fgrp>p{display:block;font-size:18px;margin:0 0 12px}
+.fld input,.fld textarea{width:100%;height:52px;border:1px solid #d6d6d6;background:var(--field);color:var(--text);font:inherit;font-size:18px;padding:0 14px}
+.fld textarea{height:176px;padding:12px 14px;resize:vertical}
+.req{color:var(--gold)}
+.fgrp{margin:40px 0}
+.fgrp label{display:flex;gap:12px;align-items:center;font-size:18px;margin:0 0 10px;cursor:pointer}
+.fgrp input{width:16px;height:16px;accent-color:#C9A96E}
+/* 18 Nov, Nini: ticking Other opens a line to write in */
+.fgrp input.fother{display:none;width:calc(100% - 28px);max-width:520px;height:auto;margin:0 0 12px 28px;padding:6px 0;border:0;border-bottom:1px solid #cfcfcf;background:transparent;color:var(--text);font:inherit;font-size:18px;outline:none}
+.fgrp input.fother:focus{border-bottom-color:var(--gold)}
+.fgrp label:has(input:checked)+input.fother{display:block}
+.fsep{border-top:1px solid var(--rule);margin:40px 0}
+.fbtn{margin-top:40px;height:52px;padding:0 28px;background:var(--gold);color:#111;font-size:15px;letter-spacing:.2em;text-transform:uppercase;font-weight:400}
+.fnote{font-size:15px;color:var(--meta);margin-top:20px}
+.fsent{font-size:15px;color:var(--gold);margin-top:16px;min-height:1em}
+.legal{columns:2;column-gap:104px;font-size:17px;line-height:29px;color:var(--meta)}
+.legal h2{display:none}
+.legal h3{font-size:19px;font-weight:400;color:var(--text);margin:0 0 12px;break-after:avoid}
+.legal p{margin:0 0 36px;break-inside:avoid}
+.legal .cnote{color:var(--gold)}
+
+/* =========================================================================================
+   FLUID LAYOUT (15 Oct): everything follows the screen, no fixed 1440 x 1024 canvas.
+   Side margin: 20 px phones, 40 tablets, 80 at 1440 wide (Nini's value), up to 120 on very large screens.
+   ========================================================================================= */
+/* 17 Nov: one screen unit --u = 1 px of Nini's 1440 x 1024 frame, scaled to whichever side of the screen is tighter.
+   No px caps, so the chrome and menu keep the same proportion to the screen on every laptop and at every browser zoom. */
+:root{--u:max(.5px,min(100vw/1440,100svh/1024));--m:max(20px,5vw);--hy:calc(64*var(--u));--ic:calc(34*var(--u));--wm:calc(48*var(--u));--wmy:calc(var(--hy) - 14*var(--u))}
+.bmenu{left:var(--m);top:var(--hy);width:var(--ic);height:var(--ic);gap:calc(7*var(--u))}
+.bword{top:var(--wmy);font-size:var(--wm)}
+.bctl{right:var(--m);top:calc(var(--hy) + 8*var(--u));gap:calc(22*var(--u))}
+.blang{font-size:max(15px,calc(14*var(--u)))}
+.bsnd svg{width:max(16px,calc(18*var(--u)));height:max(16px,calc(18*var(--u)))}
+.langs{font-size:max(15px,calc(14*var(--u)));line-height:calc(24*var(--u))}
+.lfoot{bottom:clamp(24px,3.4vh,44px)}
+.dots{gap:8px;margin-bottom:16px}
+.tag{font-size:max(18px,calc(22*var(--u)))}
+#menuCv{left:0;top:0;width:100%;height:100%;transform:none}
+#menu .bg{object-fit:cover}
+#menu .mx{left:var(--m);top:var(--hy);width:var(--ic);height:var(--ic)}
+#menu .mword{left:calc(var(--m) + var(--ic) + 20*var(--u));top:calc(var(--wmy) - 5*var(--u));font-size:var(--wm);line-height:1.2} /* 17 Nov: on one line with the close X */
+#menu .mctl{left:auto;right:var(--m);top:calc(var(--hy) + 8*var(--u));gap:calc(22*var(--u))}
+#menu .mctl .bsnd svg{width:max(16px,calc(18*var(--u)));height:max(16px,calc(18*var(--u)))}
+#menu nav{left:50%;transform:translateX(-50%);top:calc(190*var(--u));width:min(calc(548*var(--u)),62vw)}
+#menu nav a{font-size:calc(60*var(--u));line-height:1.2;padding:calc(14*var(--u)) 0}
+#menu .credit{left:var(--m);top:auto;bottom:calc(64*var(--u));font-size:max(10px,calc(11*var(--u)))}
+#menu .theme{left:auto;right:var(--m);top:auto;bottom:calc(62*var(--u));font-size:max(14px,calc(15*var(--u)))}
+.dclose{left:var(--m);top:var(--hy);width:var(--ic);height:var(--ic)}
+.ddots{bottom:clamp(24px,4.5vh,52px);gap:12px}
+.dp-set img{object-fit:cover}
+.zctl{left:auto;right:var(--m);top:50%;transform:translateY(-50%);width:74px;font-size:14px;color:#555}
+.zctl .zl{margin-bottom:16px}.zctl button{font-size:28px;line-height:40px}.zctl hr{width:32px;margin:16px 0}.zctl .zp{font-size:14px}
+.gwrap{position:absolute;inset:0;padding:calc(var(--hy) + clamp(70px,8vh,110px)) var(--m) clamp(28px,6vh,72px);display:flex;flex-direction:column;justify-content:center;gap:clamp(18px,3vh,36px)}
+.grow{display:grid;column-gap:clamp(24px,3.4vw,56px);row-gap:clamp(18px,3vh,36px)}
+.gitem{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.grow.single .gitem{align-items:center}
+.gitem img{display:block;cursor:var(--hand);max-width:100%}
+.gtext{margin-top:6px;display:flex;flex-direction:column;gap:clamp(10px,2vh,22px);align-self:stretch}
+.grow.single .gtext{align-self:center}
+.gcap{font-size:17px;line-height:1.45;margin:0}
+.gdv{font-size:clamp(18px,1.25vw,20px);align-self:flex-start}
+.ginq{font-size:clamp(18px,1.25vw,20px)}
+.gfoot{display:flex;justify-content:space-between;align-items:baseline;gap:24px}
+.gnote{font-size:16px;line-height:1.45;width:auto;max-width:70ch;margin:0}
+.dinfo{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(40px,8vw,130px);align-items:center;
+  padding:calc(var(--hy) + 60px) var(--m) clamp(70px,11vh,120px) calc(var(--m) + var(--ic))}
+.dinfo figure{margin:0;display:flex;flex-direction:column;gap:12px;justify-self:end;width:min(100%,calc(66vh*558/640))}
+.dinfo figure img{width:100%;aspect-ratio:558/640;object-fit:cover}
+.dinfo .dtext{max-width:558px}
+/* Author, Nini Figma 20 Nov (frame Author 1, 436:22): units = px of the 1440x1024 frame */
+.aleft{position:absolute;left:var(--m);top:calc(156*var(--u));width:calc(581*var(--u))}
+.aright{position:absolute;right:max(calc(106*var(--u)),18vw);top:calc(661*var(--u));width:calc(386*var(--u))}   /* Sophia 20 Nov: kept on the dark part of the photo, off the light stair edge */
+.aname{font-size:clamp(34px,3.2vw,56px);line-height:1.15}
+.abio{font-size:clamp(20px,1.4vw,21px);line-height:1.5}
+.aleft .aname{font-size:calc(50*var(--u));line-height:1.15}   /* 22 Nov, Sophia: same size as the quote */
+.aleft .abio{font-size:max(20px,calc(24*var(--u)));line-height:1.45;margin:calc(32*var(--u)) 0 0;text-align:justify;hyphens:none}
+.aleft .abio2{margin-top:calc(9*var(--u))}
+.aquote{font-size:clamp(30px,3.2vw,54px);line-height:1.2}
+.aatt{margin-top:22px;font-size:clamp(16px,1.4vw,21px)}
+.aright .aquote{font-weight:500;font-size:calc(50*var(--u));line-height:1.1;text-align:justify;text-align-last:left}
+.aright .aatt{font-weight:400;font-size:max(20px,calc(24*var(--u)));   /* 22 Nov, Sophia: same size as the text */margin-top:calc(18*var(--u));padding-right:calc(9*var(--u))}
+
+.cgrid{position:absolute;inset:0;display:grid;grid-template-columns:57fr 43fr}
+.cleft{padding:max(calc(var(--hy) + var(--ic) + 30px),calc(var(--hy) + clamp(56px,7vh,90px))) clamp(24px,4vw,72px) clamp(28px,6vh,64px) var(--m);display:flex;flex-direction:column;justify-content:space-between;gap:24px;overflow:auto;min-width:0}
+.cleft .blk{display:flex;flex-direction:column;gap:clamp(12px,2vh,22px);max-width:640px}
+.cpanel{position:relative;overflow:hidden;min-width:0}
+.cpanel .cright{left:0}
+.cleft,.cpin{clip-path:inset(calc(var(--hy) + var(--ic) + 14px) 0 0 0)}   /* 18 Nov: no overlap with the menu button when scrolled */
+.cpin{position:relative;z-index:1;height:100%;padding:max(calc(var(--hy) + var(--ic) + 30px),calc(var(--hy) + clamp(56px,7vh,90px))) var(--m) clamp(28px,6vh,64px) clamp(32px,4.5vw,84px);display:flex;flex-direction:column;gap:clamp(12px,2vh,22px);overflow:auto}
+.sttl{font-size:clamp(26px,2.8vw,44px);line-height:1.1}
+.cstrip{width:100%;max-width:600px;height:clamp(90px,15vh,170px);object-fit:cover}
+.ctext{font-size:clamp(18px,1.3vw,20px);line-height:1.5;margin:0}
+
+/* gallery, desktop: one continuous wall scrolled sideways */
+#v-gallery{height:100svh;overflow:hidden;scroll-snap-type:none;position:relative}
+.hgal{position:absolute;left:0;right:0;top:calc(var(--hy) + clamp(44px,6vh,80px));bottom:0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x proximity;overscroll-behavior-x:contain}
+.hgal::-webkit-scrollbar{display:none}
+.htrack{display:flex;align-items:flex-end;gap:clamp(90px,9vw,180px);height:calc(100% - max(150px,19vh));padding:0 max(var(--m),calc(50vw - 30vw)) 0 var(--m);width:max-content}
+.hitem{margin:0;position:relative;scroll-snap-align:center;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.hitem img{display:block;cursor:var(--hand);box-shadow:0 1px 2px rgba(0,0,0,.06),0 18px 40px -24px rgba(0,0,0,.35)}
+/* 18 Nov, Sophia: Ota's handprint replaces the hand cursor over the paintings (hotspot = middle fingertip) */
+.slide .hit,.gimg,.dp-set .hit,.zimg,.gitem img,.hitem img,.hpic,.hopen,.mitem img{cursor:var(--hand)}   /* 18 Nov: white, 30% smaller */
+.hitem[data-n="10"] img,.zimg[src$="w10.jpg"],img[src$="w10_g.jpg"],img[src$="w10.jpg"]{border-radius:50%}   /* 22 Nov, Sophia: round everywhere, phone included */   /* 17 Nov: Tantra is round; no white square around it */
+.hitem figcaption{position:absolute;top:100%;left:0;width:max(100%,280px);padding-top:14px;display:flex;flex-direction:column;gap:clamp(8px,1.6vh,16px)}
+.hitem .gdv{font-size:clamp(18px,1.1vw,20px)}
+.hchrome{position:absolute;inset:0;pointer-events:none}
+.hchrome>*{pointer-events:auto}
+.harr{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:64px;color:var(--text);opacity:.45;transition:opacity .3s}
+.harr:hover{opacity:1}.harr.off{opacity:0;pointer-events:none}
+.harr svg{width:16px;height:28px}
+.hprev{left:calc(var(--m) - 40px)}.hnext{right:calc(var(--m) - 40px)}
+.hbot{position:absolute;left:var(--m);right:var(--m);bottom:clamp(18px,3.4vh,40px);display:flex;align-items:center;gap:clamp(16px,2vw,32px)}
+.hpos{font-size:15px;letter-spacing:.12em;color:var(--meta);font-variant-numeric:tabular-nums;min-width:4.5em}
+.hbar{flex:1;height:1px;background:var(--rule);position:relative;max-width:420px}
+.hbar i{position:absolute;left:0;top:0;bottom:0;background:var(--gold);width:0}
+.hbot .ginq{margin-left:auto}
+
+/* ---------- phone (Nini's 390 x 844 frames) ---------- */
+@media (max-width:760px), (orientation:portrait) and (max-width:1100px){
+  .cv{display:none}
+  .bmenu{left:24px;top:25px;width:22px;height:22px;gap:6px}
+  .bword{top:14px;font-size:38px}
+  .bctl{right:24px;top:26px;gap:14px}
+  .blang{font-size:14px;border-bottom:0;padding:0}
+  .bsnd svg{width:18px;height:18px}
+  .langs{left:40px!important;right:24px;top:76px!important;height:35px;flex-direction:row;align-items:center;justify-content:space-between;
+    padding:0 12px;font-size:14px;line-height:35px;letter-spacing:.02em;color:#fff;text-shadow:none;
+    background:rgba(20,28,34,.5);border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+  .langs.ink{color:#fff}
+  .langs .cur,.langs span{display:inline}
+  .langs span{opacity:.6}
+  .lfoot{bottom:26px}
+  .dots{gap:6px;margin-bottom:14px}.dots button{width:5px;height:5px}
+  .tag{font-size:17px}
+  .m{display:block}
+  /* menu */
+  #menu .ab{position:absolute}
+  #menu .mx{left:24px;top:25px;width:22px;height:22px}
+  #menu .mword{left:50%;transform:translateX(-50%);top:14px;font-size:38px}
+  #menu .mctl{left:auto;right:24px;top:26px;gap:14px;font-size:13px}
+  #menu nav{left:42px;right:42px;top:180px;width:auto}
+  #menu nav a{font-size:44px;line-height:58px;padding:12px 0 11px}
+  #menu .credit{left:24px;top:auto;bottom:24px;font-size:10px}
+  #menu .theme{left:auto;right:24px;top:auto;bottom:22px;font-size:14px}
+  #menuCv{transform:none;left:0;top:0;width:100%;height:100%}
+  #menu nav{transform:none}
+  .dk{display:none!important}
+  /* gallery list */
+  #v-gallery{height:auto;overflow:visible;scroll-snap-type:none}
+  .mgal{padding-top:84px!important;padding-bottom:72px!important}
+  .minq{position:fixed;z-index:50;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));font-size:16px!important;letter-spacing:.06em;
+    padding:8px 0 8px 14px;background:color-mix(in srgb,var(--ground) 90%,transparent)}
+  .bar.dark::before{content:"";position:fixed;left:0;right:0;top:0;height:calc(72px + env(safe-area-inset-top,0px));
+    background:var(--ground);pointer-events:none}   /* white band so the title never sits on a painting while scrolling */
+  .mgrp{margin-bottom:30px}
+  #v-gallery .stage{height:auto;overflow:visible}
+  .mgal{padding:0 24px 8px}
+  #v-gallery .stage:first-child .mgal{padding-top:84px}
+  .mgrp{margin-bottom:46px}
+  .mitem{margin-bottom:22px}
+  .mitem img{max-width:100%;max-height:560px;width:auto;height:auto;cursor:var(--hand)}
+  .mitem .gcap{font-size:15px;margin-top:0}
+  .mitem .gdv{font-size:16px;margin-top:6px;display:inline-block}
+  .mgrp .ginq{font-size:16px}
+  .mgrp .gnote{width:auto;font-size:15px;margin-bottom:12px}
+  /* detail */
+  .dclose{left:24px;top:24px;width:22px;height:22px}
+  .ddots{bottom:32px;gap:7px}.ddots button{width:7px;height:7px}
+  .zctl{left:auto;right:12px;top:50%;transform:translateY(-50%);width:44px;font-size:13px}
+  .zctl button{font-size:24px;line-height:34px}
+  .zctl hr{width:22px;margin:10px 0}.zctl .zp{font-size:13px}.zctl .zl{margin-bottom:10px}
+  .mdet{position:absolute;inset:0;overflow-y:auto;padding:24px 24px 80px}
+  .mdet .row{display:flex;justify-content:space-between;align-items:center;height:22px;margin-left:40px}
+  .mdet .dlab{font-size:13px}
+  .mdet .strip{margin-top:18px;width:100%;height:140px;object-fit:cover}
+  .mdet .dttl{font-size:34px;line-height:40px;margin-top:18px;padding-bottom:10px}
+  .mdet .dmeta{font-size:16px}.mdet .dmeta .m1{margin-top:12px}
+  .mdet .ddesc{font-size:17px;line-height:27px;margin-top:12px}
+  .mdet .dinq{display:flex;justify-content:space-between;font-size:16px;margin-top:12px;padding:12px 0 10px}
+  /* author */
+  /* Nini Figma 20 Nov, comment #34 "Try this version again please": mobile Author frame 390x980 (page scrolls a little) */
+  #v-author .stage{height:auto;min-height:max(100svh,980px);overflow:hidden}
+  .mauth{position:absolute;inset:0}
+  .mauth>*{position:absolute;margin:0}
+  .mauth .aname{top:76px;right:45px;font-size:34px;line-height:1.21;text-align:right}
+  .mauth .abio{top:142px;left:27px;width:calc(100% - 54px);max-width:335px;font-size:18px;line-height:1.445;text-align:left;hyphens:none}   /* 22 Nov, Sophia: both paragraphs identical in width and position */
+  .mauth .aquote{top:573px;right:45px;font-size:30px;line-height:1.21;text-align:right}
+  .mauth .aquote span{display:block}
+  .mauth .aatt{top:740px;right:45px;font-size:18px;text-align:right}
+  .mauth .abio2{top:811px;left:27px;right:auto;width:calc(100% - 54px);max-width:335px;font-size:18px;line-height:1.445;text-align:left;hyphens:none}
+  /* contact */
+  #v-contact .stage{height:auto;overflow:visible}
+  .mcon{padding:90px 24px 60px}
+  .mcon .sttl{font-size:26px;line-height:30px}
+  .mcon .stxt{font-size:17px;line-height:27px}
+  .mcon .efield input{min-width:0}.mcon .efield button{width:92px}
+  .mcon .pv{position:relative;margin:34px 0;padding:26px 24px 28px;overflow:hidden}
+  .mcon .pv>*{position:relative;z-index:1}
+  .mcon .pv>.cright{position:absolute;left:0;z-index:0}
+  .cright.dk,.zctl{display:none}
+  .mcon .ctext{font-size:17px;line-height:25px}
+  .tpage{padding:110px 24px 80px}
+  .tpage h1{font-size:24px}
+  .frow{grid-template-columns:1fr;gap:24px}
+  .fbtn{width:100%}
+  .legal{columns:1}
+}
+@media not all and (max-width:760px){@media not all and (orientation:portrait) and (max-width:1100px){.m{display:none!important}}}
+
+/* Works page, Nini's design 17 Nov: no button on the painting; OPEN appears on hover; caption = title, medium, size */
+.hpic{position:relative;align-self:flex-start;line-height:0}
+.hopen{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:none;color:#fff;font-family:'Jost',sans-serif;font-weight:400;
+  font-size:20px;letter-spacing:.12em;text-transform:uppercase;line-height:1;padding:12px 16px;text-shadow:0 1px 8px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .25s ease}
+@media (hover:hover){.hpic:hover .hopen,.hopen:focus-visible{opacity:1;pointer-events:auto}}
+.gcap span{display:block}
+.gcap .gttl{font-weight:500}
+.dmeta .m0{margin-top:28px}.dmeta .m0+.m1{margin-top:4px}.dmeta .m3{color:var(--meta);margin-top:8px}
+
+/* zoom controls over the painting: light, with a soft shadow */
+.zctl{transition:color .2s ease}
+.zctl.onart,.zctl.onart button{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.55)}
+.zctl.onart hr{border-top-color:rgba(255,255,255,.85);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+
+/* Works arrows over a painting: white with a soft shadow */
+.harr.onart{color:#fff;opacity:.9;filter:drop-shadow(0 1px 4px rgba(0,0,0,.6))}
+.harr.onart:hover{opacity:1}
+.harr.onart svg{stroke-width:1.8}
+/* 22 Nov, Sophia: arrows as plain glyphs in the bottom corners (landing and Works), same style as the detail view's back arrow.
+   Generous invisible click area, larger above the glyph so it works when the handprint cursor lies over it. */
+.narr{position:absolute;z-index:6;bottom:calc(clamp(18px,3.4vh,40px) - 14px);padding:48px 18px 14px;font:400 clamp(24px,1.8vw,28px)/.6 Jost,sans-serif;letter-spacing:0;cursor:pointer;transition:color .25s,opacity .3s}
+.narr:hover{color:var(--gold)!important}
+.narr.l{left:calc(var(--m,24px) - 18px)}.narr.r{right:calc(var(--m,24px) - 18px)}
+.narr.off{opacity:0;pointer-events:none}
+#v-main{position:relative}
+#v-main .narr{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.6);bottom:calc(clamp(24px,3.4vh,44px) - 14px)}
+.hchrome .narr{color:var(--text)}
+.hchrome .narr.onart{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.hbot{justify-content:center}.hbot .ginq{display:none}
+/* 22 Nov, Sophia: Works Inquire moved to a safe place: the top bar, left of the language selector (desktop; phones keep the fixed corner Inquire) */
+.binq{display:none;font-size:max(16px,calc(16*var(--u)));letter-spacing:.12em;text-decoration:none}
+.bar.works .binq{display:inline-block}
+@media (max-width:760px), (orientation:portrait) and (max-width:1100px){
+  .narr{font-size:24px}.narr.l{left:6px}.narr.r{right:6px}#v-main .narr{bottom:12px}
+  .bar.works .binq{display:none}}
+/* 22 Nov, Sophia: detail view opened from Works: one quiet "next" link bottom right instead of the ticks */
+.dnext{position:absolute;z-index:6;right:calc(var(--m,24px) - 18px);bottom:calc(clamp(24px,4.5vh,52px) - 14px);padding:48px 18px 14px;cursor:pointer;display:none;font:400 16px/1 Jost,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--text);white-space:nowrap;transition:color .25s}
+.dnext:hover{color:var(--gold)}
+/* 22 Nov, Sophia: a matching back link bottom left, straight under the X; hidden on the first page */
+.dprev{right:auto;left:calc(var(--m,24px) - 18px);font-size:clamp(24px,1.8vw,28px);letter-spacing:0;line-height:.6}   /* 22 Nov, Sophia: arrow only */
+/* 22 Nov, Sophia: the click area reaches 48 px above the text, so it already works when the handprint (pointing with its fingertip, top of the cursor) lies over the words */
+#detail.navlinks .dprev.none{display:none}
+:root[data-theme="dark"] .dnext{text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.dnext.onphoto{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.dnext.onphoto:hover{color:var(--gold)}
+#detail.navlinks .dnext{display:block}
+#detail.navlinks .ddots{display:none}
+@media (max-width:760px), (orientation:portrait) and (max-width:1100px){.dnext{right:6px;bottom:18px;font-size:15px}.dprev{right:auto;left:6px;font-size:24px}}
+/* 22 Nov, Sophia: larger type for comfortable reading (sizes only); phone sizes for rules that had none */
+@media (max-width:760px), (orientation:portrait) and (max-width:1100px){
+  .legal{font-size:16px;line-height:27px}.legal h3{font-size:18px}
+  .fld label,.fgrp>p,.fld input,.fld textarea,.fgrp label,.fgrp input.fother{font-size:17px}
+  .fbtn,.fnote,.efield button{font-size:14px}}
+/* 22 Nov, Sophia: reading text one step heavier (Jost 300 to 400); dark mode secondary grey lighter (#939393 to #b3b3b3, set in the dark theme variables) */
+.ddesc,.dmeta,.gcap,.gnote,.abio,.ctext,.stxt,.legal,.fld label,.fgrp>p,.fgrp label,.fnote{font-weight:400}
+/* ---- living photos ---- */
+/* living photos (22 Nov): a muted looping video laid exactly over the scene photo */
+.gcap span.nw,.dmeta .nw{display:inline;white-space:nowrap}
+.gcap span.fpara,.dmeta .fpara{white-space:normal}
+video.phv{position:absolute;pointer-events:none;opacity:0;transition:opacity .6s ease}
+video.phv.go{opacity:1}
+#dpSet.whole video.phv{inset:0;width:100%!important;height:100%!important;left:0!important;top:0!important;object-fit:contain!important;object-position:50% 50%!important}
+/* ---- subscription pop-up, option D "Veil" ---- */
+#subPop{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:24px;cursor:default;
+  background:rgba(255,255,255,.62);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+  opacity:0;visibility:hidden;transition:opacity .8s ease,visibility 0s linear .8s}
+:root[data-theme="dark"] #subPop{background:rgba(22,22,22,.66)}
+#subPop.on{opacity:1;visibility:visible;transition:opacity .8s ease,visibility 0s}
+#subPop .sp{width:min(760px,100%);text-align:center;color:var(--text,#111);outline:none;transform:translateY(14px);transition:transform .8s ease}
+#subPop.on .sp{transform:none}
+#subPop .sw{font:300 64px/1 'Cormorant Garamond',serif;margin:0 0 26px;color:var(--text,#111)}
+#subPop .st{font:300 24px/1.65 Jost,sans-serif;margin:0 0 30px;color:var(--text,#111)}
+#subPop form{display:flex;gap:24px}
+#subPop input{flex:1;height:66px;background:transparent;border:0;border-bottom:1px solid var(--meta,#6b6b6b);border-radius:0;color:var(--text,#111);font:300 20px Jost,sans-serif;text-align:center;padding:0 10px;outline:none;cursor:text}
+#subPop input::placeholder{color:var(--meta,#6b6b6b)}
+#subPop input:focus{border-bottom-color:var(--gold,#C9A96E)}
+#subPop .sb{height:66px;min-width:200px;padding:0 28px;background:var(--gold,#C9A96E);color:#fff;border:0;font:300 20px Jost,sans-serif;letter-spacing:.22em;cursor:pointer}
+#subPop .sb:hover,#subPop .sb:focus-visible{background:#b8975c;outline:none}
+#subPop .se{min-height:24px;margin:10px 0 0;font:300 17px Jost,sans-serif;color:#c9805a}
+#subPop .spv{margin:4px 0 0;font:300 17px Jost,sans-serif;color:var(--meta,#6b6b6b)}
+#subPop .sok{display:none;margin:0;font:300 34px/1.3 'Cormorant Garamond',serif;color:var(--text,#111)}
+#subPop.done form,#subPop.done .se,#subPop.done .spv{display:none}#subPop.done .sok{display:block}
+#subPop .sx{position:fixed;top:max(18px,env(safe-area-inset-top));right:max(18px,env(safe-area-inset-right));width:48px;height:48px;border:0;background:transparent;cursor:pointer;color:var(--text,#111);opacity:.8}
+#subPop .sx::before,#subPop .sx::after{content:"";position:absolute;left:12px;right:12px;top:23px;height:1.5px;background:currentColor}
+#subPop .sx::before{transform:rotate(45deg)}#subPop .sx::after{transform:rotate(-45deg)}
+#subPop .sx:hover,#subPop .sx:focus-visible{color:var(--gold,#C9A96E);opacity:1;outline:none}
+#subPop .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media(max-width:760px){#subPop .sw{font-size:48px}#subPop .st{font-size:20px}#subPop form{flex-direction:column;gap:14px}#subPop input{flex:none;width:100%}#subPop .sb{width:100%}#subPop .spv,#subPop .se{font-size:16px}#subPop .spv{white-space:nowrap;font-size:clamp(13px,3.9vw,16px)}}
+@media(prefers-reduced-motion:reduce){#subPop,#subPop .sp{transition:none!important}}
+/* =========================================================================================
+   Production additions (Next.js build, Nov 2026)
+   ========================================================================================= */
+:root[data-theme="dark"]{color-scheme:dark}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:fixed;z-index:9999;left:12px;top:-60px;padding:10px 16px;background:var(--ground);color:var(--text);border:1px solid var(--gold);transition:top .2s}
+.skip:focus{top:12px}
+a.hit,a.hopen{display:block;text-decoration:none}
+.slide picture,.slide picture img{display:block}
+#detail{display:block}
+a.dclose{display:block;color:inherit}
+.dinq{cursor:pointer}
+.fregard{font-size:18px;color:var(--gold);margin:-8px 0 32px;letter-spacing:.02em}
+.ferr{color:#c9805a}
+.fld input:focus,.fld textarea:focus{outline:none;border-color:var(--gold)}
+.fld input[aria-invalid="true"],.fld textarea[aria-invalid="true"],.fgrp[aria-invalid="true"]>p{border-color:#c9805a}
+.fgrp[aria-invalid="true"]>p{color:#c9805a}
+.fbtn[disabled]{opacity:.6;cursor:default}
+.efield .emsg{flex-basis:100%;font-size:15px;color:var(--gold);margin:6px 0 0}
+.efield{flex-wrap:wrap}
+.nf{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;text-align:center;padding:24px}
+.nf h1{font:300 clamp(30px,4vw,48px)/1.2 'Cormorant Garamond',serif;margin:0}
+.nf a{color:var(--gold);letter-spacing:.14em;text-transform:uppercase;text-decoration:none;font-size:16px}
+/* noscript and first paint: the first landing photo is visible before the slideshow script runs */
+.lposter{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lposter img{width:100%;height:100%;object-fit:cover}
+@media (prefers-reduced-motion:reduce){.slide{transition:none}}
+
+a.bword,a.mword{text-decoration:none}
+.ginq{text-decoration:none}
