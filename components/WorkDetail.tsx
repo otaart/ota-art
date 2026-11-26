@@ -332,8 +332,9 @@ export default function WorkDetail({ locale, w, t }: {
           </div>
         </div>
         <div className="m mdet">
-          <div className="row"><span /><span className="dlab">{t.detailOfArtwork}</span></div>
+          <div className="row"><span /></div>
           {w.images.detail ? <img className="strip" src={w.images.detail.src} srcSet={w.images.detail.srcSet} sizes="100vw" alt={t.detailOf} loading="lazy" /> : null}
+          <div className="dlab mlab">{t.detailOfArtwork}</div>
           <div className="dttl">{w.title}</div>
           <MetaBlock w={w} />
           <div className="ddesc">{w.description.length ? w.description.map((p, i) => <p key={i}>{p}</p>) : t.descriptionToCome}</div>
