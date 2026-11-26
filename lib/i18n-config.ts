@@ -7,6 +7,7 @@ export const isLocale = (s: string): s is Locale => (LOCALES as readonly string[
 export const LANGUAGE_MENU: { code: string; label: string; locale?: Locale }[] = [
   { code: 'EN', label: 'EN', locale: 'en' },
   { code: 'CZ', label: 'CZ', locale: 'cs' },
-  { code: 'IT', label: 'IT' }, { code: 'ES', label: 'ES' }, { code: 'FR', label: 'FR' },
-  { code: 'DE', label: 'DE' }, { code: 'GR', label: 'GR' }, { code: 'RU', label: 'RU' }, { code: 'JA', label: 'JA' },
+  // More languages later (Nini wants many). Hidden for now, Sophia 26 Nov 2026:
+  // { code: 'IT', label: 'IT' }, { code: 'ES', label: 'ES' }, { code: 'FR', label: 'FR' },
+  // { code: 'DE', label: 'DE' }, { code: 'GR', label: 'GR' }, { code: 'RU', label: 'RU' }, { code: 'JA', label: 'JA' },
 ];
