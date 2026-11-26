@@ -17,8 +17,9 @@ export async function GET(req: Request) {
     { status: ok ? 200 : 400, headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
 
   if (!p || !p.e || Date.now() > p.x || !resend) return html(false);
-  const segment = process.env.RESEND_SEGMENT_ID;
-  const { error } = await resend.contacts.create({ email: p.e, unsubscribed: false, ...(segment ? { segments: [{ id: segment }] } : {}) });
+  // main list plus the list for the language the visitor subscribed in (Nini 26 Nov: newsletters go out per language)
+  const ids = [process.env.RESEND_SEGMENT_ID, cs ? process.env.RESEND_SEGMENT_ID_CS : process.env.RESEND_SEGMENT_ID_EN].filter(Boolean) as string[];
+  const { error } = await resend.contacts.create({ email: p.e, unsubscribed: false, ...(ids.length ? { segments: ids.map((id) => ({ id })) } : {}) });
   // a contact that already exists is fine: they confirmed twice
   if (error && !/exist/i.test(error.message || '')) { console.error('subscribe confirm', esc(error.message || '')); return html(false); }
   return html(true);
