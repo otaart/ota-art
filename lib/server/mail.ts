@@ -52,4 +52,5 @@ export function readToken<T>(token: string): T | null {
   if (got.length !== want.length || !timingSafeEqual(got, want)) return null;
   try { return JSON.parse(Buffer.from(body, 'base64url').toString()) as T; } catch { return null; }
 }
-export const subscribeReady = () => !!(resend && SECRET && process.env.RESEND_SEGMENT_ID);
+// ready when there is at least one list to save to: the language lists (EN/CS) and/or one main list (Sophia 26 Nov: free Resend plan allows 3 segments, main list dropped)
+export const subscribeReady = () => !!(resend && SECRET && (process.env.RESEND_SEGMENT_ID || process.env.RESEND_SEGMENT_ID_EN || process.env.RESEND_SEGMENT_ID_CS));
