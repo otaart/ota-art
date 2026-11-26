@@ -150,7 +150,7 @@ export default function SiteChrome({ locale, t }: { locale: Locale; t: Pick<Dict
       </div>
 
       <div ref={langsRef} className={`langs${langOpen ? ' on' : ''}${onWhite ? ' ink' : ''}`} id="langs" role="menu">
-        {LANGUAGE_MENU.map((l, i) => (
+        {LANGUAGE_MENU.filter((l) => l.locale !== locale).map((l, i) => (   /* Sophia 26 Nov: list only the other language(s), not the current one */
           <Fragment key={l.code}>
             {i ? <span aria-hidden="true">·</span> : null}
             {l.locale ? (
